@@ -1,13 +1,23 @@
-import sys
-sys.path.append("../../")
+# Import necessary libraries
 import pandas as pd
+import sys
+import os
+
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 from yellowbrick.cluster import KElbowVisualizer
 
-from src.data_preparation.preprocessing import load_data_from_database, handle_missing_values, handle_outliers
+# Get the parent directory of the current script (assuming it's located in the 'src/analysis' directory)
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+
+# Add the parent directory to the system path
+sys.path.insert(0, parent_dir)
+
+
+from data_preparation.preprocessing import load_data_from_database, handle_missing_values, handle_outliers
 
 # Load data
 data = load_data_from_database()
@@ -22,10 +32,10 @@ if data is not None:
 
     # Calculate total traffic (DL+UL) for each session
     data['Total_Traffic'] = data['Total DL (Bytes)'] + data['Total UL (Bytes)']
-
+    print(data.head())
     # Compute engagement metrics per user
     user_engagement = data.groupby('MSISDN/Number').agg({
-        'bearer id': 'count',  # Session frequency
+        'Bearer Id': 'count',  # Session frequency
         'Session_Duration': 'sum',  # Total session duration
         'Total_Traffic': 'sum'  # Total traffic
     }).reset_index()
@@ -68,8 +78,8 @@ if data is not None:
     total_traffic_per_app = data.groupby('MSISDN/Number').agg({
         'Social Media DL (Bytes)': 'sum',
         'Social Media UL (Bytes)': 'sum',
-        'YouTube DL (Bytes)': 'sum',
-        'YouTube UL (Bytes)': 'sum',
+        # 'YouTube DL (Bytes)': 'sum',
+        # 'YouTube UL (Bytes)': 'sum',
         'Netflix DL (Bytes)': 'sum',
         'Netflix UL (Bytes)': 'sum',
         'Google DL (Bytes)': 'sum',
@@ -78,8 +88,8 @@ if data is not None:
         'Email UL (Bytes)': 'sum',
         'Gaming DL (Bytes)': 'sum',
         'Gaming UL (Bytes)': 'sum',
-        'Other DL': 'sum',
-        'Other UL': 'sum'
+        # 'Other DL': 'sum',
+        # 'Other UL': 'sum'
     }).reset_index()
 
     # Calculate total traffic per application
@@ -96,18 +106,39 @@ if data is not None:
         print(top_users)
 
     # Plot the top 3 most used applications
-    top_3_apps = ['Social Media', 'Google', 'YouTube']
-    total_traffic_top_3 = data[top_3_apps].sum()
+    # Sum up the data usage for each application
+    data['Total_Data_Usage'] = data['Social Media DL (Bytes)'] + data['Social Media UL (Bytes)'] + \
+                            data['Google DL (Bytes)'] + data['Google UL (Bytes)'] + \
+                            data['Email DL (Bytes)'] + data['Email UL (Bytes)'] + \
+                            data['Youtube DL (Bytes)'] + data['Youtube UL (Bytes)'] + \
+                            data['Netflix DL (Bytes)'] + data['Netflix UL (Bytes)'] + \
+                            data['Gaming DL (Bytes)'] + data['Gaming UL (Bytes)'] + \
+                            data['Other DL (Bytes)'] + data['Other UL (Bytes)']
 
-    plt.figure(figsize=(10, 6))
-    total_traffic_top_3.sort_values().plot(kind='barh', color='skyblue')
+    # Get the total data usage for each application
+    app_usage = data[[
+                    'Google DL (Bytes)', 'Google UL (Bytes)',
+                    'Email DL (Bytes)', 'Email UL (Bytes)',
+                    'Youtube DL (Bytes)', 'Youtube UL (Bytes)',
+                    'Netflix DL (Bytes)', 'Netflix UL (Bytes)']]
+
+    # Sum up the data usage for each application across UL and DL
+    app_usage_sum = app_usage.sum()
+
+    # Get the top 3 applications based on total data usage
+    top_3_apps = app_usage_sum.nlargest(3)
+    
+
+    # Plot the top 3 applications
+    top_3_apps.plot(kind='bar', color='skyblue')
     plt.title('Top 3 Most Used Applications')
-    plt.xlabel('Total Traffic (Bytes)')
-    plt.ylabel('Application')
+    plt.xlabel('Application')
+    plt.ylabel('Total Data Usage (Bytes)')
+    plt.xticks(rotation=45)
     plt.show()
 
     # Determine the optimized value of k using the elbow method
-    X = customer_engagement[['Session_Frequency', 'Total_Session_Duration', 'Total_Traffic']]
+    X = user_engagement[['Session_Frequency', 'Total_Session_Duration', 'Total_Traffic']]
     elbow_visualizer = KElbowVisualizer(KMeans(), k=(1,11), metric='distortion', timings=False)
     elbow_visualizer.fit(X)
     elbow_visualizer.show()

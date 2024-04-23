@@ -1,18 +1,19 @@
 import pandas as pd
-from src.database.database import connect_to_database  # Import your existing function for database connection
+
+from database.database import connect_to_database  # Import your existing function for database connection
 
 
 def load_data_from_database():
     try:
         # Establish connection to PostgreSQL database
         conn = connect_to_database()
-
+        print('Connected to database')
         # Query data from database
         query = "SELECT * FROM public.xdr_data;"
         data = pd.read_sql(query, conn)
 
         # Close database connection
-        conn.close()
+        conn.dispose()
 
         return data
 
