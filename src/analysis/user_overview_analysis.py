@@ -1,6 +1,16 @@
 # Import necessary libraries
 import pandas as pd
-from src.data_preparation.preprocessing import load_data_from_database, handle_missing_values, handle_outliers
+import sys
+import os
+
+# Get the parent directory of the current script (assuming it's located in the 'src/analysis' directory)
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+
+# Add the parent directory to the system path
+sys.path.insert(0, parent_dir)
+
+from data_preparation.preprocessing import load_data_from_database, handle_missing_values, handle_outliers
 
 # Load data
 data = load_data_from_database()
@@ -52,6 +62,11 @@ if data is not None:
         'OtherDataVolume': []
     }
 
+    # Preprocess data for missing values and outliers
+    data = handle_missing_values(data)
+    data = handle_outliers(data)
+
+
     # Iterate over grouped data and calculate aggregated metrics
     for msisdn, group in user_data:
         aggregated_data['MSISDN/Number'].append(msisdn)
@@ -66,18 +81,13 @@ if data is not None:
         aggregated_data['YouTubeDataVolume'].append(group['YouTube DL (Bytes)'].sum() + group['YouTube UL (Bytes)'].sum())
         aggregated_data['NetflixDataVolume'].append(group['Netflix DL (Bytes)'].sum() + group['Netflix UL (Bytes)'].sum())
         aggregated_data['GamingDataVolume'].append(group['Gaming DL (Bytes)'].sum() + group['Gaming UL (Bytes)'].sum())
-        aggregated_data['OtherDataVolume'].append(group['Other DL'].sum() + group['Other UL'].sum())
+        aggregated_data['OtherDataVolume'].append(group['Other DL'].fillna(0).sum() + group['Other UL'].fillna(0).sum())
 
     # Create DataFrame from aggregated data
     aggregated_df = pd.DataFrame(aggregated_data)
 
 
-    # Exploratory data analysis
-    # Preprocess data for missing values and outliers
-    data = handle_missing_values(data)
-    data = handle_outliers(data)
-
-    
+    # Exploratory data analysis   
     # Describe the dataset to get basic statistics
     basic_stats = data.describe()
 
