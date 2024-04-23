@@ -1,21 +1,23 @@
-# Import necessary libraries
 import pandas as pd
 import sys
 import os
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
 
-# Get the parent directory of the current script (assuming it's located in the 'src/analysis' directory)
+# Get the parent directory of the current script
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 
 # Add the parent directory to the system path
 sys.path.insert(0, parent_dir)
 
-from data_preparation.preprocessing import load_data_from_database, handle_missing_values, handle_outliers
+from data_preparation.preprocessing import load_data_from_database, preprocess_data
 
 # Load data
 data = load_data_from_database()
 
-if data is not None:
+
+if data is not None:   
     # Top 10 handsets used by customers
     top_10_handsets = data['Handset Type'].value_counts().head(10)
 
@@ -40,7 +42,9 @@ if data is not None:
         print(f"\nManufacturer: {manufacturer}")
         print(top_5_handsets)
     
-    # 
+    
+    # Preprocess data for missing values and outliers
+    data = preprocess_data(data)
     
     # Group data by user (MSISDN/Number)
     user_data = data.groupby('MSISDN/Number')
@@ -62,11 +66,6 @@ if data is not None:
         'OtherDataVolume': []
     }
 
-    # Preprocess data for missing values and outliers
-    data = handle_missing_values(data)
-    data = handle_outliers(data)
-
-
     # Iterate over grouped data and calculate aggregated metrics
     for msisdn, group in user_data:
         aggregated_data['MSISDN/Number'].append(msisdn)
@@ -78,10 +77,10 @@ if data is not None:
         aggregated_data['SocialMediaDataVolume'].append(group['Social Media DL (Bytes)'].sum() + group['Social Media UL (Bytes)'].sum())
         aggregated_data['GoogleDataVolume'].append(group['Google DL (Bytes)'].sum() + group['Google UL (Bytes)'].sum())
         aggregated_data['EmailDataVolume'].append(group['Email DL (Bytes)'].sum() + group['Email UL (Bytes)'].sum())
-        aggregated_data['YouTubeDataVolume'].append(group['YouTube DL (Bytes)'].sum() + group['YouTube UL (Bytes)'].sum())
+        aggregated_data['YouTubeDataVolume'].append(group['Youtube DL (Bytes)'].sum() + group['Youtube UL (Bytes)'].sum())
         aggregated_data['NetflixDataVolume'].append(group['Netflix DL (Bytes)'].sum() + group['Netflix UL (Bytes)'].sum())
         aggregated_data['GamingDataVolume'].append(group['Gaming DL (Bytes)'].sum() + group['Gaming UL (Bytes)'].sum())
-        aggregated_data['OtherDataVolume'].append(group['Other DL'].fillna(0).sum() + group['Other UL'].fillna(0).sum())
+        aggregated_data['OtherDataVolume'].append(group['Other DL (Bytes)'].fillna(0).sum() + group['Other UL (Bytes)'].fillna(0).sum())
 
     # Create DataFrame from aggregated data
     aggregated_df = pd.DataFrame(aggregated_data)
@@ -130,12 +129,12 @@ if data is not None:
 
     # Select relevant columns for bivariate analysis
     relevant_columns = ["Social Media DL (Bytes)", "Social Media UL (Bytes)", 
-                        "YouTube DL (Bytes)", "YouTube UL (Bytes)",
+                        "Youtube DL (Bytes)", "Youtube UL (Bytes)",
                         "Netflix DL (Bytes)", "Netflix UL (Bytes)",
                         "Google DL (Bytes)", "Google UL (Bytes)",
                         "Email DL (Bytes)", "Email UL (Bytes)",
                         "Gaming DL (Bytes)", "Gaming UL (Bytes)",
-                        "Other DL", "Other UL",
+                        "Other DL (Bytes)", "Other UL (Bytes)",
                         "Total DL (Bytes)", "Total UL (Bytes)"]
 
     # Compute the correlation matrix for bivariate analysis
@@ -146,18 +145,18 @@ if data is not None:
     print(correlation_matrix)
 
     # Segment users into decile classes based on total duration for all sessions
-    telecom_data['Total Duration (s)'] = telecom_data['Dur. (s)'] * telecom_data['Nb of sec with 125000B < Vol DL']
-    telecom_data['Decile Class'] = pd.qcut(telecom_data['Total Duration (s)'], 10, labels=False)
+    data['Total Duration (s)'] = data['Dur. (s)'] * data['Nb of sec with 125000B < Vol DL']
+    data['Decile Class'] = pd.qcut(data['Total Duration (s)'], 10, labels=False)
 
     # Compute total data (DL+UL) per decile class
-    total_data_per_decile = telecom_data.groupby('Decile Class')[['Total DL (Bytes)', 'Total UL (Bytes)']].sum()
+    total_data_per_decile = data.groupby('Decile Class')[['Total DL (Bytes)', 'Total UL (Bytes)']].sum()
 
     # Print the total data per decile class
     print("Total Data (DL+UL) per Decile Class:")
     print(total_data_per_decile)
 
     # Compute a correlation matrix for the specified variables
-    correlation_matrix = telecom_data[relevant_columns].corr()
+    correlation_matrix = data[relevant_columns].corr()
 
     # Print the correlation matrix
     print("Correlation Matrix:")
@@ -166,7 +165,7 @@ if data is not None:
     # Perform principal component analysis (PCA)
     # Standardize the data
     scaler = StandardScaler()
-    scaled_data = scaler.fit_transform(telecom_data[relevant_columns])
+    scaled_data = scaler.fit_transform(data[relevant_columns])
 
     # Perform PCA
     pca = PCA()
