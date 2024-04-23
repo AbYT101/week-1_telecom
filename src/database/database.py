@@ -1,4 +1,5 @@
-import psycopg2
+from sqlalchemy import create_engine
+from sqlalchemy.exc import SQLAlchemyError
 import os
 
 # Load environment variables
@@ -13,15 +14,17 @@ POSTGRES_USER = os.getenv("POSTGRES_USER")
 POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
 
 def connect_to_database():
+    # Construct the database URL
+    db_url = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
+    
     try:
-        conn = psycopg2.connect(
-            host=POSTGRES_HOST,
-            port=POSTGRES_PORT,
-            database=POSTGRES_DB,
-            user=POSTGRES_USER,
-            password=POSTGRES_PASSWORD
-        )
-        return conn
-    except psycopg2.Error as e:
+        # Create an engine to manage connections
+        engine = create_engine(db_url)
+        
+        # Test the connection
+        engine.connect()
+        
+        return engine
+    except SQLAlchemyError as e:
         print("Error connecting to PostgreSQL database:", e)
         return None

@@ -1,4 +1,3 @@
-# Import necessary libraries
 import pandas as pd
 from src.data_preparation.preprocessing import load_data_from_database, handle_missing_values, handle_outliers
 
