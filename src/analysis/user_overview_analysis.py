@@ -13,6 +13,7 @@ sys.path.insert(0, parent_dir)
 
 from data_preparation.preprocessing import load_data_from_database, preprocess_data
 
+
 # Load data
 data = load_data_from_database()
 
@@ -145,7 +146,7 @@ if data is not None:
     print(correlation_matrix)
 
     # Segment users into decile classes based on total duration for all sessions
-    data['Total Duration (s)'] = data['Dur. (s)'] * data['Nb of sec with 125000B < Vol DL']
+    data['Total Duration (s)'] = data['Dur. (ms)'] * data['Nb of sec with 125000B < Vol DL']
     data['Decile Class'] = pd.qcut(data['Total Duration (s)'], 10, labels=False)
 
     # Compute total data (DL+UL) per decile class

@@ -6,7 +6,7 @@ def load_data_from_database():
     try:
         # Establish connection to PostgreSQL database
         conn = connect_to_database()
-
+        print('Connected to database')
         # Query data from database
         query = "SELECT * FROM public.xdr_data;"
         data = pd.read_sql(query, conn)
