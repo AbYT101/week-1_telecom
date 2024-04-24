@@ -30,23 +30,7 @@ def preprocess_data(data):
 
 def handle_missing_values(df: pd.DataFrame):
     # Replace missing values with the mean of the corresponding column
-    df['Dur. (ms)'] = df['Dur. (ms)'].fillna(df['Dur. (ms)'].mean())
-    df['Total DL (Bytes)'] = df['Total DL (Bytes)'].fillna(df['Total DL (Bytes)'].mean())
-    df['Total UL (Bytes)'] = df['Total UL (Bytes)'].fillna(df['Total UL (Bytes)'].mean())
-    df['Social Media DL (Bytes)'] = df['Social Media DL (Bytes)'].fillna(df['Social Media DL (Bytes)'].mean())
-    df['Social Media UL (Bytes)'] = df['Social Media UL (Bytes)'].fillna(df['Social Media UL (Bytes)'].mean())
-    df['Google DL (Bytes)'] = df['Google DL (Bytes)'].fillna(df['Google DL (Bytes)'].mean())
-    df['Google UL (Bytes)'] = df['Google UL (Bytes)'].fillna(df['Google UL (Bytes)'].mean())
-    df['Email DL (Bytes)'] = df['Email DL (Bytes)'].fillna(df['Email DL (Bytes)'].mean())
-    df['Email UL (Bytes)'] = df['Email UL (Bytes)'].fillna(df['Email UL (Bytes)'].mean())
-    df['Youtube DL (Bytes)'] = df['Youtube DL (Bytes)'].fillna(df['Youtube DL (Bytes)'].mean())
-    df['Youtube UL (Bytes)'] = df['Youtube UL (Bytes)'].fillna(df['Youtube UL (Bytes)'].mean())
-    df['Netflix DL (Bytes)'] = df['Netflix DL (Bytes)'].fillna(df['Netflix DL (Bytes)'].mean())
-    df['Netflix UL (Bytes)'] = df['Netflix UL (Bytes)'].fillna(df['Netflix UL (Bytes)'].mean())
-    df['Gaming DL (Bytes)'] = df['Gaming DL (Bytes)'].fillna(df['Gaming DL (Bytes)'].mean())
-    df['Gaming UL (Bytes)'] = df['Gaming UL (Bytes)'].fillna(df['Gaming UL (Bytes)'].mean())
-    df['Other DL (Bytes)'] = df['Other DL (Bytes)'].fillna(df['Other DL (Bytes)'].mean())
-    df['Other UL (Bytes)'] = df['Other UL (Bytes)'].fillna(df['Other UL (Bytes)'].mean())
+    df.fillna(df.mean(), inplace=True)
     return df
 
 def handle_outliers(df):
