@@ -25,4 +25,4 @@ jobs:
 
       - name: Run Tests
         run: |
-          python src\tests\test_data_preparation.py
+          python src/tests/test_data_preparation.py
