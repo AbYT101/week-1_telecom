@@ -7,4 +7,3 @@ plotly
 streamlit
 sqlalchemy
 pytest
-dotenv
